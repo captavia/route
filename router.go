@@ -33,7 +33,7 @@ func NewRouter[T Context](opts ...RouterOpt[T]) *Router[T] {
 
 type RouterOpt[T Context] func(*Router[T])
 
-func WithDelimiter[T Context](d rune) func(*Router[T]) {
+func WithDelimiter[T Context](d rune) RouterOpt[T] {
 	return func(r *Router[T]) {
 		r.delimiter = d
 	}
