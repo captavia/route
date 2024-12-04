@@ -1,15 +1,13 @@
 package main
 
 import (
-	"iter"
 	"strings"
 )
 
 type Handler[T Context] func(ctx T)
 
 type Router[T Context] struct {
-	defaultPartsSpliter func(rune, string) iter.Seq[string]
-	delimiter           rune
+	delimiter rune
 
 	children  map[string]*Router[T]
 	handler   Handler[T]
@@ -21,10 +19,23 @@ type Context interface {
 	NotMatch()
 }
 
-func NewRouter[T Context]() *Router[T] {
-	return &Router[T]{
-		defaultPartsSpliter: PathSegmenterWithDelimiter,
-		delimiter:           '/',
+func NewRouter[T Context](opts ...RouterOpt[T]) *Router[T] {
+	var router = &Router[T]{
+		delimiter: '/',
+	}
+
+	for _, opt := range opts {
+		opt(router)
+	}
+
+	return router
+}
+
+type RouterOpt[T Context] func(*Router[T])
+
+func WithDelimiter[T Context](d rune) func(*Router[T]) {
+	return func(r *Router[T]) {
+		r.delimiter = d
 	}
 }
 
