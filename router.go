@@ -88,7 +88,6 @@ func (r *Router[T]) Serve(path string, ctx func() T) {
 	correct := r
 	var params map[string]string
 	for part := range r.defaultSegmenter(r.delimiter, path) {
-		var _ = part
 		switch {
 		case correct.children[part] != nil:
 			correct = correct.children[part]
