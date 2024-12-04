@@ -88,6 +88,7 @@ func (r *Router[T]) Serve(path string, ctx func() T) {
 			}
 		default:
 			c.NotMatch()
+			return
 		}
 	}
 	correct.handler(c)
