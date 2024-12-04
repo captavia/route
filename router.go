@@ -17,6 +17,7 @@ type Router[T Context] struct {
 
 type Context interface {
 	NotMatch()
+	WithParam(map[string]string)
 }
 
 func NewRouter[T Context](opts ...RouterOpt[T]) *Router[T] {
@@ -47,10 +48,10 @@ func (r *Router[T]) Handle(path string, handler Handler[T]) *Router[T] {
 		var paramName = ""
 		if isDynamic {
 			if strings.HasPrefix(part, ":") {
-				paramName = part[1:] // :id -> id
+				paramName = trimmed[1:] // :id -> id
 				part = "*"
 			} else {
-				paramName = part[1 : len(part)-1] // {id} -> id
+				paramName = trimmed[1 : len(part)-1] // {id} -> id
 				part = "*"
 			}
 		}
@@ -84,13 +85,14 @@ func (r *Router[T]) Serve(path string, ctx func() T) {
 			}
 			correct = correct.children["*"]
 			if correct.isDynamic {
-				params[correct.paramName] = part // 提取参数
+				params[correct.paramName] = strings.TrimPrefix(part, string(r.delimiter)) // 提取参数
 			}
 		default:
 			c.NotMatch()
 			return
 		}
 	}
+	c.WithParam(params)
 	correct.handler(c)
 }
 
