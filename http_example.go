@@ -39,3 +39,7 @@ type httpContext struct {
 func (c *httpContext) NotMatch() {
 	http.NotFound(c.w, c.r)
 }
+
+func (c *httpContext) WithParam(param map[string]string) {
+
+}
