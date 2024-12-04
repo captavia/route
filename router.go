@@ -1,8 +1,11 @@
 package main
 
 import (
+	"iter"
 	"strings"
 )
+
+type Segmenter func(delimiter rune, path string) iter.Seq[string]
 
 type Handler[T Context] func(ctx T)
 
@@ -13,6 +16,9 @@ type Router[T Context] struct {
 	handler   Handler[T]
 	isDynamic bool
 	paramName string
+
+	// todo: closure have performance problem
+	defaultSegmenter Segmenter
 }
 
 type Context interface {
@@ -22,7 +28,8 @@ type Context interface {
 
 func NewRouter[T Context](opts ...RouterOpt[T]) *Router[T] {
 	var router = &Router[T]{
-		delimiter: '/',
+		delimiter:        '/',
+		defaultSegmenter: PathSegmenterWithDelimiter,
 	}
 
 	for _, opt := range opts {
@@ -40,9 +47,15 @@ func WithDelimiter[T Context](d rune) RouterOpt[T] {
 	}
 }
 
+func WithSegmenter[T Context](fn Segmenter) RouterOpt[T] {
+	return func(r *Router[T]) {
+		r.defaultSegmenter = fn
+	}
+}
+
 func (r *Router[T]) Handle(path string, handler Handler[T]) *Router[T] {
 	correct := r
-	for part := range PathSegmenterWithDelimiter(r.delimiter, path) {
+	for part := range r.defaultSegmenter(r.delimiter, path) {
 		trimmed := strings.TrimPrefix(part, string(r.delimiter))
 		isDynamic := strings.HasPrefix(trimmed, ":") || (strings.HasPrefix(trimmed, "{") && strings.HasSuffix(part, "}"))
 		var paramName = ""
@@ -74,7 +87,7 @@ func (r *Router[T]) Serve(path string, ctx func() T) {
 	var c = ctx()
 	correct := r
 	var params map[string]string
-	for part := range PathSegmenterWithDelimiter(r.delimiter, path) {
+	for part := range r.defaultSegmenter(r.delimiter, path) {
 		var _ = part
 		switch {
 		case correct.children[part] != nil:
@@ -100,7 +113,7 @@ func (r *Router[T]) Delete(path string) {
 	parent := r
 	correct := r
 	lastPart := ""
-	for part := range PathSegmenterWithDelimiter(r.delimiter, path) {
+	for part := range r.defaultSegmenter(r.delimiter, path) {
 		var _ = part
 		switch {
 		case correct.children[part] != nil:
