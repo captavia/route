@@ -1,18 +1,19 @@
-package route
+package http
 
 import (
+	"github.com/captavia/route"
 	"net/http"
 	"sync"
 )
 
-type HttpMux struct {
-	router *Router[*httpContext]
+type Mux struct {
+	router *route.Router[*httpContext]
 	pool   *sync.Pool
 }
 
-func NewHttpMux() *HttpMux {
-	return &HttpMux{
-		router: NewRouter[*httpContext](),
+func NewHttpMux() *Mux {
+	return &Mux{
+		router: route.NewRouter[*httpContext](),
 		pool: &sync.Pool{
 			New: func() interface{} {
 				return new(httpContext)
@@ -21,7 +22,7 @@ func NewHttpMux() *HttpMux {
 	}
 }
 
-func (c *HttpMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := c.pool.Get().(*httpContext)
 	c.router.Serve(r.RequestURI, func() *httpContext {
 		ctx.w = w

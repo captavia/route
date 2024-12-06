@@ -3,6 +3,7 @@ package route
 import (
 	"crypto/rand"
 	"github.com/stretchr/testify/assert"
+	"iter"
 	"testing"
 )
 
@@ -53,6 +54,18 @@ func BenchmarkSegment1(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for p := range PathSegmenterWithDelimiter('/', pathKeys[i%len(pathKeys)]) {
+			var _ = p
+		}
+	}
+}
+
+func BenchmarkSegment2(b *testing.B) {
+	var segmenter func(s rune, path string) iter.Seq[string]
+	segmenter = PathSegmenterWithDelimiter
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for p := range segmenter('/', pathKeys[i%len(pathKeys)]) {
 			var _ = p
 		}
 	}

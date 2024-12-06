@@ -1,14 +1,15 @@
-package route
+package onebot
 
 import (
 	"encoding/json"
+	"github.com/captavia/route"
 	"io"
 	"net/http"
 	"sync"
 )
 
 type OneBot11PostMux struct {
-	router    *Router[*onebotContext]
+	router    *route.Router[*onebotContext]
 	pool      *sync.Pool
 	delimiter rune
 }
@@ -16,7 +17,7 @@ type OneBot11PostMux struct {
 func NewOneBot11PostMux() *OneBot11PostMux {
 	var delimiter = ' '
 	return &OneBot11PostMux{
-		router: NewRouter[*onebotContext](WithDelimiter[*onebotContext](delimiter)),
+		router: route.NewRouter[*onebotContext](route.WithDelimiter[*onebotContext](delimiter)),
 		pool: &sync.Pool{
 			New: func() interface{} {
 				return new(onebotContext)
@@ -46,7 +47,7 @@ func (c *OneBot11PostMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (c *OneBot11PostMux) HandleGroup(path string, handler Handler[*onebotContext]) {
+func (c *OneBot11PostMux) HandleGroup(path string, handler route.Handler[*onebotContext]) {
 	c.router.Handle("group"+string(c.delimiter)+path, handler)
 }
 
